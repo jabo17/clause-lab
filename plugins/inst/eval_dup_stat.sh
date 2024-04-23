@@ -7,15 +7,16 @@
 #
 
 # get file names
-source ../../defs.sh
+source ../defs.sh
 
-# get problem instance
+# get instance
 inst_dir=$1
+inst_res_dir=$2
 inst_id=$(basename "$inst_dir")
 
 # set out file
 # DO NOT USE *.tmp!
-out_file="$inst_dir/$OUT_INST_DUP_STAT"
+out_file="$inst_res_dir/$OUT_INST_DUP_STAT"
 
 awk '{print $2}' "$inst_dir/$PROD_SORTED_CLS_TMP" |uniq -c |awk -v "instance=$inst_id" '
         BEGIN {reports=0; hashes=0; dup_reports=0; dup_hashes=0}

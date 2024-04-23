@@ -1,10 +1,11 @@
 #!/bin/bash
 
-source defs.sh
-source register_inst_plugin.sh
-source register_global_plugin.sh
-
 script=$0
+scriptdir=$(dirname $script)
+
+source $scriptdir/defs.sh
+source $scriptdir/register_plugin.sh
+source $scriptdir/register_global_plugin.sh
 
 
 cmd=$1
@@ -36,51 +37,54 @@ shift 1;
 if [ "$cmd" == "--eval-inst-all" ]; then
 
     exp_dir=$1
-    num_parallel_jobs=$2
-    max_jobs=$3
+    res_dir=$2
+    num_parallel_jobs=$3
+    max_jobs=$4
     jobs_dir="$exp_dir/jobs"
     shift 3;
+
+    mkdir -p $res_dir
 
     if [ ! -d "$jobs_dir" ]; then
         echo "$jobs_dir does not exist" >&2
         exit 1
     fi
 
+    # preparing parallel run
     eval_jobs_file="eval_jobs.tmp"
     eval_jobs_tmp_dir="eval_jobs_tmp"
     mkdir -p $eval_jobs_tmp_dir
 
-    # prepare parallel jobs
-    for inst in $(seq 1 "$max_jobs"); do
-        echo "bash $script --eval-inst \"$jobs_dir/$inst\"t $@" >> $eval_jobs_file
-    done
-
     # run
-    parallel -j "$num_parallel_jobs" --tmp "$eval_jobs_tmp_dir" --progress --eta < $eval_jobs_file
+    seq 1 "$max_jobs" |parallel -j "$num_parallel_jobs" --tempdir "$eval_jobs_tmp_dir" --progress --eta bash "$script" --eval-inst "$jobs_dir/{}" "$res_dir/{}" $@
 
     exit 0;
 
 elif [ "$cmd" == "--eval-inst" ]; then
 
-    inst_dir=$2
-    shift 1;
+    inst_dir=$1
+    inst_res_dir=$2
+    shift 2;
 
     if [ ! -d "$inst_dir" ]; then
         echo "$inst_dir does not exist" >&2
         exit 1
     fi
 
+    mkdir -p "$inst_res_dir"
+
+
     # TODO preprocessing
     prod_sorted_cls_archive="$inst_dir/cls_produced_sorted.tar.gz"
     prod_sorted_cls_file="$inst_dir/$PROD_SORTED_CLS_TMP"
 
-    tar -xf "$prod_sorted_cls_archive"
+    tar -xf "$prod_sorted_cls_archive" -C "$inst_dir" 1>/dev/null
     mv "$inst_dir/cls_produced_sorted.txt" "$prod_sorted_cls_file" # work around
 
 
     # run plugins
-    for plugin_idx in $(seq 0 $((${REGISTER_INST_PLUGINS[@]}-1))); do
-        plugin="${REGISTER_INST_PLUGINS[plugin_idx]}"
+    for plugin in "${REGISTER_INST_PLUGINS[@]}"; do
+
 
         # check if plugin is skipped
         skip=false
@@ -95,23 +99,23 @@ elif [ "$cmd" == "--eval-inst" ]; then
         fi
 
         # prepare parallel job
-        bash "$PLUGIN_DIR_INST/eval_$plugin.sh" "$inst_dir"
+        bash "$scriptdir/$PLUGIN_DIR_INST/eval_$plugin.sh" "$inst_dir" "$inst_res_dir"
     done
 
     # post processing
-    rm *.tmp 2> /dev/null
+    rm $inst_dir/*.tmp 2> /dev/null
+    rm $inst_res_dir/*.tmp 2> /dev/null
 
     exit 0;
-elif [ "$cmd" == "eval-exp" ]; then
+elif [ "$cmd" == "--eval-exp" ]; then
 
-    exp_dir=$2;
-    res_dir=$3;
+    exp_dir=$1;
+    res_dir=$2;
 
     # TODO preprocessing stuff
 
     # run exp specific evaluations
-    for plugin_idx in $(seq 0 $((${REGISTER_EXP_PLUGINS[@]}-1))); do
-        plugin="${REGISTER_EXP_PLUGINS[plugin_idx]}"
+    for plugin in "${REGISTER_EXP_PLUGINS[@]}"; do
 
         # check if plugin is skipped
         skip=false
@@ -126,14 +130,15 @@ elif [ "$cmd" == "eval-exp" ]; then
         fi
 
         # prepare parallel job
-        bash "$PLUGIN_DIR_EXP/eval_$plugin.sh" "$exp_dir" "$res_dir" >> $eval_jobs_file
+        bash "$scriptdir/$PLUGIN_DIR_EXP/eval_$plugin.sh" "$exp_dir" "$res_dir"
     done
 
-    # TODO postprocessing stuff
-
+    # remove tmp files
+    rm -r $exp_dir/*.tmp 2>/dev/null
+    rm -r $res_dir/*.tmp 2>/dev/null
 
     exit 0;
 
-elif [ "$cmd" == "eval-global" ]; then
+elif [ "$cmd" == "--eval-global" ]; then
     exit 0;
 fi

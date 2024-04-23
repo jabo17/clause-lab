@@ -1,10 +1,11 @@
 #!/bin/bash
 
-PLUGIN_DIR_INST="plugin/inst"
-PLUGIN_DIR_EXP="plugin/exp"
+PLUGIN_DIR_INST="plugins/inst"
+PLUGIN_DIR_EXP="plugins/exp"
 
 # export names that are used around the evaluation
 export PROD_SORTED_CLS_TMP="cls_produced_sorted.tmp"
+export QUALIFIED_SOLUTION_STATUS="solution_status.txt" # in exp dir
 
 # You might want to use artefacts from preceding plugins
 # naming convention: OUT_<LEVEL>_<PLUGIN_NAME>_<OPTIONAL_IDENT>
@@ -21,16 +22,16 @@ export OUT_EXP_CLAUSE_SIZE_STAT_GMEAN="cls_clause_size_stat_gmean.txt"
 # some useful helper functions
 
 ###################################
-# Stream list of artefacts (file paths) from all jobs.
+# Creates list of artefacts (file paths) from all jobs.
 # Arguments:
-#   exp_dir
+#   dir
 #   artefact
 ###################################
-function stream_inst_artefacts(){
-    exp_dir=$0
-    artefact=$1
+function ls_inst_artefacts(){
+    dir=$1
+    artefact=$2
 
-    ls -1 "$exp_dir/*/$artefact"
+    ls -1 $dir/*/$artefact
 }
 
 ###################################
@@ -43,19 +44,20 @@ function stream_inst_artefacts(){
 #   file
 #
 ###################################
-function depends_on_inst_file(){
-    inst_dir=$0
-    plugin=$1
-    file=$2
-    if [ ! -f "$inst_dir/$artefact" ]; then
-      bash "${PLUGIN_DIR_INST}/eval_${plugin}.sh" $inst_dir
+function depends_on_res_inst_file(){
+    inst_dir=$1
+    inst_res_dir=$2
+    plugin=$3
+    file=$4
+    if [ ! -f "$inst_res_dir/$file" ]; then
+      bash "${PLUGIN_DIR_INST}/eval_${plugin}.sh" "$inst_dir" "$inst_res_dir"
       exit_code=$?
-      if [ ! -f "$inst_dir/$artefact" ] || [ ! $exit_code -eq 0 ]; then
-        echo "Depending on ${inst_dir}/${artefact}, but the file was not found and cannot be created by plugin ${plugin}!" >&2
+      if [ ! -f "$inst_dir/$file" ] || [ ! $exit_code -eq 0 ]; then
+        echo "Depending on ${inst_res_dir}/${file}, but the file was not found and cannot be created by plugin ${plugin}!" >&2
         exit 1
       fi
     fi
 
 }
 
-export -f stream_inst_artefacts
+export -f ls_inst_artefacts
