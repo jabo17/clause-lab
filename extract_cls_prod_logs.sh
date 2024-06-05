@@ -10,7 +10,7 @@ if [ "$cmd" == "--extract-all-parallel" ]; then
     shift 1
     first_job_id=$1 # this is the internal_id of the (first) jobs in processed_jobs.out
     num_jobs=$2 # this is the number of jobs
-    # logging dir of experiment
+    # logging dir of experiments which includes a directory for each formula starting with $first_job_id
     dir=$3
 
     mkdir -p "$dir/jobs"
@@ -41,15 +41,12 @@ elif [ "$cmd" == "--extract-job" ]; then
     if [ ! -f "$dir/jobs/$id/FINISHED_EXTRACT" ]; then
 	    rm "$dir/jobs/$id/cls_produced.txt" 2> /dev/null
         p=0
-        while [ -d "$dir/$p" ]; do
-            s=0
-            # iterate over all solvers of process p to obtain logs for job i
-            while [ -d "$dir/$p/$s" ]; do
-                log="$dir/$p/$s/produced_cls.${original_id}.log"
-                if [ -f $log ]; then
-                    awk -v "p=$p" -v "s=$s" '{print $0, p, s}' "$log" >> "$dir/jobs/$id/cls_produced.txt"
-                fi
-                s=$((s+1))
+        while [ -d "$dir/${original_id}/$p" ]; do
+            # iterate over all solvers of process p to obtain logs for this job
+            for log in $dir/${original_id}/$p/produced_cls_*.log; do
+                s=${log#*cls_produced_}
+                s=${s%.log}
+                awk -v "p=$p" -v "s=$s" '{print $0, p, s}' "$log" >> "$dir/jobs/$id/cls_produced.txt"
             done
             p=$((p+1))
         done
@@ -61,14 +58,8 @@ elif [ "$cmd" == "--extract-job" ]; then
     # clean up and proceed only if artefact exist and milestone was reached
     if [ -f "$dir/jobs/$id/cls_produced.txt" ] && [ -f "$dir/jobs/$id/FINISHED_EXTRACT" ]; then
         p=0
-        while [ -d "$dir/$p" ]; do
-            s=0
-            # iterate over all solvers of process p to obtain logs for job i
-            while [ -d "$dir/$p/$s" ]; do
-                log="$dir/$p/$s/produced_cls.${original_id}.log"
-                rm "$log" 2> /dev/null
-                s=$((s+1))
-            done
+        while [ -d "$dir/${original_id}/$p" ]; do
+            rm $dir/${original_id}/$p/produced_cls_*.log
             p=$((p+1))
         done
     fi

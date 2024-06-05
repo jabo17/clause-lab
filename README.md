@@ -19,21 +19,22 @@ The logging scheme can be implemented using the following interface:
 ```c++
 #define SAMPLING_RATIO 16
 
-struct ClauseLogger {
+struct ClauseOverlapLogger {
   // A clause hash function receives an array of literals (a.k.a. pointer to first literal)
   //  and the clause size. It returns a hash.
   typedef size_t(*ClauseHashFunction)(int*, int);
 
-  ClauseLogger(ClauseHashFunction hasher);
+  ClauseOverlapLogger(ClauseHashFunction hasher);
 
   /**
    * Creates and opens a new file in:
-   *     logging_dir "/" process_id "/produced_cls_" solver_id ".log"
+   *     <logging_dir>/<process_id>/produced_cls_<solver_id>.log
+   * @param logging_dir directory for a single job (formula)
    * @param logging_dir
    * @param process_id
    * @param solver_id
    */
-  void open(const char *logging_dir, int process_id, int solver_id);
+  void open(const char *logging_dir, size_t process_id, size_t solver_id);
 
   /**
    * Close the log file
@@ -83,10 +84,10 @@ SharingManager::SharingManager(
 
         // log-file in logDir/appRank/localSolverID/ named produced_cls.{InternalJobID}.log
         // the member _clause_loggers is a std::vector<ClauseLogger>
-        // Mallob::nonCommutativeHash is an non-commutative hash function for clauses defined in src/app/sat/data/clause.hpp 
+        // Mallob::nonCommutativeHash is a non-commutative hash function for clauses defined in src/app/sat/data/clause.hpp 
         // note that a non-commutativ hash function is sufficient because the clause is sorted by literals before it is logged
-        _clause_loggers.push_back(ClauseLogger([](int* sortedClause, int clauseSize){return Mallob::nonCommutativeHash(sortedClause, clauseSize)}));
-        _clause_loggers.back().open(_params.logDirectory.getValAsString(), _job_index, i);
+        _clause_loggers.emplace_back({[](int* sortedClause, int clauseSize){return Mallob::nonCommutativeHash(sortedClause, clauseSize);}});
+        _clause_loggers.back().open(_params.logDirectory.getValAsString().c_str(), _job_index, i);
     }
 
     // ...
@@ -119,14 +120,20 @@ void SharingManager::onProduceClause(int solverId, int solverRevision, const Cla
 }
 ```
 
+Now you can run Mallob on a benchmark and obtain the logs.
+The easiest way is to call Mallob for each formula.
+In this case, we configure Mallob to use as a logging dir `<logging_dir>/<formula_id>`.
+In this directory, we create each processes `0` to `p-1` a directory.
+Each process directory, will store the logs of its solver threads. 
+
 #### Extracting Logs
 
 The idea of extracting the logs is to obtain a single file for each formula with all logged clauses from all solver threads.
-Our Mallob integration logs clauses as follows: `logging_dir "/" formula "/" process_id "/produced_cls_" solver_id ".log"`.
+Our Mallob integration logs clauses as follows: `<logging_dir>/<formula_id>/<process_id>/produced_cls<solver_id>.log"`.
 We provide a script supporting this file structure called "extract_cls_prod_logs.sh". It uses GNU parallel to process many 
 formulas in parallel. The usage is as follows:
 ```bash
-first_job_id=1
+first_job_id=1 # smallest job id in $logging_dir of continuous job ids 
 num_jobs=$(wc -l benchmark_file.txt |xargs)
 logging_dir="main_logging_dir"
 ./extract_cls_prod_logs.sh --extract-all-parallel $first_job_id $num_jobs $logging_dir

@@ -7,26 +7,26 @@
 
 #define SAMPLING_RATIO 16
 
-struct ClauseLogger {
+struct ClauseOverlapLogger {
 
   // A clause hash function receives an array of literals (a.k.a. pointer to first literal)
   //  and the clause size. It returns a hash.
   typedef size_t(*ClauseHashFunction)(int*, int);
 
-  ClauseLogger(ClauseHashFunction hasher)  {
+  ClauseOverlapLogger(ClauseHashFunction hasher)  {
     m_hasher = hasher;
   }
 
   /**
    * Creates and opens a new file in:
-   *     logging_dir "/produced_cls_" process_id "_" solver_id ".log"
-   * @param logging_dir
+   *     <logging_dir>/<process_id>/produced_cls_<solver_id>.log
+   * @param logging_dir directory for a single job (formula)
    * @param process_id
    * @param solver_id
    */
-  void open(const char *logging_dir, int process_id, int solver_id) {
+  void open(const char *logging_dir, size_t process_id, size_t solver_id) {
     char *filename, *file;
-    printf(filename, "/produced_cls_%d_%s.log", process_id, solver_id);
+    printf(filename, "/%s/produced_cls_%s.log", process_id, solver_id);
     file = concatenate(logging_dir, filename);
     m_fptr = fopen(file, "w");
     free(file);
