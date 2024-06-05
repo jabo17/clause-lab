@@ -89,7 +89,6 @@ if __name__ == "__main__":
     if args.ystepsize and len(args.ystepsize) > 0:
         stepsize = args.ystepsize[0]
 
-    print(args)
-    # plot boxplot
+    # plot barplot
     plot_barplot(args.outfile[0], title, data, args.label, ymin=ymin, ymax=ymax, stepsize=stepsize, ylabel=ylabel,
                  xlabel=xlabel)

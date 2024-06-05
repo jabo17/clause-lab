@@ -7,16 +7,19 @@ import argparse
 
 import config
 
-
-def plot_boxplot(outfile, title, data, labels, ymin=None, ymax=None, stepsize=None, showoutliers=True, ylabel=""):
+def plot_lineplot(outfile, title, data, labels, ymin=None, ymax=None, stepsize=None, ylabel="", xlabel="", xlog=False):
     config.init_matplotlib()
 
-    fig, ax = plt.subplots(figsize=(4, 3))
+    fig, ax = plt.subplots(figsize=(5, 4))
 
-    boxplot = ax.boxplot(data, labels=labels, showfliers=showoutliers)
+    for idx, df in enumerate(data):
+        ax.plot(df[df.columns[0]], df[df.columns[1]], label=labels[idx])
 
     ax.set_title(title, pad=11)
     ax.yaxis.grid(True)
+
+    if xlog:
+        ax.set_xscale('log')
 
     [ymin2, ymax2] = ax.get_ylim()
     if ymin is not None:
@@ -26,15 +29,13 @@ def plot_boxplot(outfile, title, data, labels, ymin=None, ymax=None, stepsize=No
         ymax2 = ymax
     ax.set_ylim([ymin2, ymax2])
 
-    # show number of datapoints above each boxplot
-    for idx, label in enumerate(labels):
-        plt.text(idx + 1, ymax2 + (ymax2 - ymin2) * 0.01, f'({len(data[idx])})', horizontalalignment='center')
-
     if stepsize is not None:
         ax.yaxis.set_ticks(np.arange(ymin2, ymax2 + stepsize, stepsize))
 
     plt.ylabel(ylabel)
+    plt.xlabel(xlabel)
     plt.grid(True)
+    plt.legend(loc="upper right")
     plt.tight_layout()
     plt.savefig(outfile)
 
@@ -42,20 +43,21 @@ def plot_boxplot(outfile, title, data, labels, ymin=None, ymax=None, stepsize=No
 if __name__ == "__main__":
 
     # parse arguments
-    parser = argparse.ArgumentParser(description="Plot boxplots")
+    parser = argparse.ArgumentParser(description="Plot line plots")
 
     parser.add_argument("-o", "--outfile", nargs=1, metavar="outfile", type=str, help="output file", required=True)
     parser.add_argument("-t", "--title", nargs=1, metavar="title", type=str, help="title in plot")
 
-    group = parser.add_argument_group(title="data", description="data-row with label")
+    group = parser.add_argument_group(title="data", description="data-row (x,y) with label for bins along the x-axis")
     group.add_argument("-d", "--datafile", nargs="*", metavar="datafile", type=str, help="data files")
     group.add_argument("-l", "--label", nargs="*", metavar="label", type=str, help="labels")
 
-    parser.add_argument("--ylabel", nargs=1, metavar="ylabel", type=str, help="ylabel (scaling)")
+    parser.add_argument("--ylabel", nargs=1, metavar="ylabel", type=str, help="ylabel")
+    parser.add_argument("--xlabel", nargs=1, metavar="xlabel", type=str, help="xlabel")
+    parser.add_argument("--xlog", action="store_true", help="logarithm scale for x-axis")
     parser.add_argument("--ymin", nargs=1, metavar="ymin", type=float, help="min value (scaling)")
     parser.add_argument("--ymax", nargs=1, metavar="ymax", type=float, help="max value (scaling)")
     parser.add_argument("--ystepsize", nargs=1, metavar="ystepsize", type=float, help="stepsize of y-ticks")
-    parser.add_argument("--dis-fliers", nargs=1, metavar="dis-fliers", type=bool, help="disable outliers")
 
     args = parser.parse_args()
     if len(args.datafile) != len(args.label):
@@ -64,12 +66,16 @@ if __name__ == "__main__":
 
     data = []
     for file in args.datafile:
-        df = pd.read_csv(file, header=None)
-        data.append(df[df.columns[0]].to_list())
+        df = pd.read_csv(file, header=None, index_col=False, delimiter=" ")
+        data.append(df)
 
     ylabel = ""
     if args.ylabel and len(args.ylabel) > 0:
         ylabel = args.ylabel[0]
+
+    xlabel = ""
+    if args.xlabel and len(args.xlabel) > 0:
+        xlabel = args.xlabel[0]
 
     title = ""
     if args.title and len(args.title) > 0:
@@ -87,10 +93,6 @@ if __name__ == "__main__":
     if args.ystepsize and len(args.ystepsize) > 0:
         stepsize = args.ystepsize[0]
 
-    dis_fliers = False
-    if args.dis_fliers and len(args.dis_fliers) > 0:
-        dis_fliers = True
-
-    # plot boxplot
-    plot_boxplot(args.outfile[0], title, data, args.label, ymin=ymin, ymax=ymax, stepsize=stepsize,
-                 showoutliers=dis_fliers, ylabel=ylabel)
+    # plot lineplot
+    plot_lineplot(args.outfile[0], title, data, args.label, ymin=ymin, ymax=ymax, stepsize=stepsize, ylabel=ylabel,
+                 xlabel=xlabel, xlog=args.xlog is not None)

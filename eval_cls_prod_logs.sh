@@ -56,7 +56,7 @@ if [ "$cmd" == "--eval-inst-all" ]; then
     mkdir -p $eval_jobs_tmp_dir
 
     # run
-    seq 1 "$max_jobs" |parallel -j "$num_parallel_jobs" --tempdir "$eval_jobs_tmp_dir" --progress --eta bash "$script" --eval-inst "$jobs_dir/{}" "$res_dir/{}" $@
+    seq 1 "$max_jobs" |parallel -j "$num_parallel_jobs" --tempdir "$eval_jobs_tmp_dir" --progress --eta bash "$script" --eval-inst "$jobs_dir/{}" "$res_dir/{}" 2>&1
 
     exit 0;
 
@@ -130,6 +130,7 @@ elif [ "$cmd" == "--eval-exp" ]; then
         fi
 
         # prepare parallel job
+        echo "Evaluating plugin $plugin for the experiment"
         bash "$scriptdir/$PLUGIN_DIR_EXP/eval_$plugin.sh" "$exp_dir" "$res_dir"
     done
 

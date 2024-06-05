@@ -25,7 +25,7 @@ out_file2="$res_inst_dir/$OUT_INST_CLAUSE_SIZE_NORMALIZED" # normalized by repor
 # determine produced (duplicate) clauses for each clause size
 awk -v "ATTR_POS=3" -f ../awk/dist_cls_over_attr.awk "$inst_dir/$PROD_SORTED_CLS_TMP" |sort -k1,1n > "$out_file"
 
-# normalize to overall number of reports
+# normalize to total number of reports
 awk -v "reports=$(awk '{print $2}' "$res_inst_dir/$OUT_INST_DUP_STAT")" '
     {print $1, $2/reports, $3/reports}
     ' "$out_file" > "$out_file2"
