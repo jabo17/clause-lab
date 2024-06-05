@@ -25,8 +25,28 @@ struct ClauseOverlapLogger {
    * @param solver_id
    */
   void open(const char *logging_dir, size_t process_id, size_t solver_id) {
+    int base_filename_size = 100;
     char *filename, *file;
-    printf(filename, "/%s/produced_cls_%s.log", process_id, solver_id);
+    filename = (char*)(malloc(base_filename_size + 1));
+    if (filename == NULL) {
+      fprintf(stderr, "Memory allocation failed\n");
+      exit(1);
+    }
+    while(true) {
+      int n = snprintf(filename, 100, "/%s/produced_cls_%s.log", process_id, solver_id);
+      if (n<0) {
+        free(filename);
+        base_filename_size *= 2;
+        filename = (char*)malloc(base_filename_size+1);
+        if (filename == NULL) {
+          fprintf(stderr, "Memory allocation failed\n");
+          exit(1);
+        }
+      }else{
+        break;
+      }
+    }
+
     file = concatenate(logging_dir, filename);
     m_fptr = fopen(file, "w");
     free(file);
