@@ -7,7 +7,10 @@
 #
 
 # get definitions and helpers
-source ../defs.sh
+script=$0
+scriptdir=$(dirname $script)
+
+source $scriptdir/../../defs.sh
 
 # get problem instance
 inst_dir=$1
