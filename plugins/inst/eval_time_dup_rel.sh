@@ -7,7 +7,10 @@
 # OUTPUT: sorted relative timestamps of duplicate reports
 #
 
-source ../defs.sh
+script=$0
+scriptdir=$(dirname $script)
+
+source $scriptdir/../../defs.sh
 
 inst_dir=$1
 inst_res_dir=$2

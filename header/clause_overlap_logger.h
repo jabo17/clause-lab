@@ -33,7 +33,7 @@ struct ClauseOverlapLogger {
       exit(1);
     }
     while(true) {
-      int n = snprintf(filename, 100, "/%lX/produced_cls_%lX.log", process_id, solver_id);
+      int n = snprintf(filename, base_filename_size, "/%s/produced_cls_%s.log", process_id, solver_id);
       if (n<0) {
         free(filename);
         base_filename_size *= 2;

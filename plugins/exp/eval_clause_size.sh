@@ -1,6 +1,9 @@
 #!/bin/bash
 
-source ../defs.sh
+script=$0
+scriptdir=$(dirname $script)
+
+source $scriptdir/../../defs.sh
 
 # exp dir
 exp_dir=$1
