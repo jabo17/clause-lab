@@ -4,7 +4,7 @@ A tool for analysing clause overlaps in a distributed clause-sharing SAT solver.
 It provides a C/C++ header to easily integrate a logging-scheme for learned clauses into a parallel or distributed
 clause-sharing SAT solver.
 After performing experiments, the reports can be extracted and evaluated with this tool.
-The evaluation pipeline allows to easily integrate further analyses.
+The **Clause** **Lab**oratory provides an evaluation pipeline that allows to easily integrate further analyses.
 
 ---
 
