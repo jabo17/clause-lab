@@ -33,7 +33,7 @@ struct ClauseOverlapLogger {
       exit(1);
     }
     while(true) {
-      int n = snprintf(filename, 100, "/%s/produced_cls_%s.log", process_id, solver_id);
+      int n = snprintf(filename, 100, "/%lX/produced_cls_%lX.log", process_id, solver_id);
       if (n<0) {
         free(filename);
         base_filename_size *= 2;
@@ -69,7 +69,7 @@ struct ClauseOverlapLogger {
     size_t hash = m_hasher(clause, size);
     if (hash % SAMPLING_RATIO == 0) {
       hash /= SAMPLING_RATIO;
-      fprintf(m_fptr, "%f %llX %d %d", report_time, hash, size, lbd);
+      fprintf(m_fptr, "%f %lX %d %d\n", report_time, hash, size, lbd);
     }
   }
 
