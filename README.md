@@ -3,8 +3,9 @@
 A tool for analysing clause overlaps in a distributed clause-sharing SAT solver.
 It provides a C/C++ header to easily integrate a logging-scheme for learned clauses into a parallel or distributed
 clause-sharing SAT solver.
-After performing experiments, the logged clause reports can be extracted and evaluated with this tool.
-Our evaluation pipeline
+After performing experiments, the reports can be extracted and evaluated with this tool.
+The evaluation pipeline allows to easily integrate further analyses.
+
 ---
 
 ## Usage
@@ -195,7 +196,7 @@ Moreover, they create plots with `matplotlib` and `python3`.
 2. `clause_size` computes for each clause size the geometric mean over the instances' fraction of reports and fraction of duplicate reports.
     They are written to `$result_dir/cls_clause_size_stat_gmean.txt` and plotted in a barplot `$result_dir/barplot_clause_size.pdf`.
 3. `clause_lbd` works similar to `clause_size`.
-4. `pairwise` generates a heatmap showing for each pair of solvers the **geometric mean** and **maximum PPCO** over all instances.
+4. `pairwise` generates a heatmap showing for each pair of solvers the geometric mean and maximum PPCO over all instances.
     Note that the title in the plot shows in brackets the number of involved formulas. The set of instances for each pair of solvers for the geometric mean can slightly vary
     due to null-valued PPCOs.
 5. `time_dup_rel` generates a CDF plot to analysis the typical relative timestamps among the total set of duplicate reports from the experiment.

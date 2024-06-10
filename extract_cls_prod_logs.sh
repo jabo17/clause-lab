@@ -44,8 +44,8 @@ elif [ "$cmd" == "--extract-job" ]; then
         while [ -d "$dir/${original_id}/$p" ]; do
             # iterate over all solvers of process p to obtain logs for this job
             for log in $dir/${original_id}/$p/produced_cls_*.log; do
-                s=${log#*cls_produced_}
-                s=${s%.log}
+                s="${log#*produced_cls_}"
+                s="${s%.log}"
                 awk -v "p=$p" -v "s=$s" '{print $0, p, s}' "$log" >> "$dir/jobs/$id/cls_produced.txt"
             done
             p=$((p+1))
