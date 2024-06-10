@@ -5,7 +5,6 @@ scriptdir=$(dirname $script)
 
 source $scriptdir/defs.sh
 source $scriptdir/register_plugin.sh
-source $scriptdir/register_global_plugin.sh
 
 
 cmd=$1
