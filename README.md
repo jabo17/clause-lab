@@ -212,8 +212,13 @@ It is possible that you need extra plugins to analysis the logged clauses.
 
 If you use "ClauseLab" for a publication, please acknowledge our work by citing the following paper.
 
-```text
-bibtex entry
+```bibtex
+@InProceedings{borowitz2024empirical,
+  author={Borowitz, Jannick and Schreiber, Dominik and Sanders, Peter},
+  title={An Empirical Study on Learned Clause Overlaps in Distributed {SAT} Solving},
+  booktitle={15th International Workshop on Pragmatics of SAT (PoS 2024)},
+  year={2024}
+}
 ```
 
 
